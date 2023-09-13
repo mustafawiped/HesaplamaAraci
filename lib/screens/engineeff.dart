@@ -29,7 +29,15 @@ class _engineeffState extends State<engineeff> {
       return;
     }
 
-    sonuc = debi + guc + basmaYuksekligi + hidrolikVerim;
+    debi = (debiDegeri == "I/s") ? debi * 3600.0 / 1000.0 : debi;
+    guc = (gucDegeri == "W")
+        ? guc / 1000
+        : (gucDegeri == "hp")
+            ? guc / 1.341
+            : guc;
+    double denklem = (debi * basmaYuksekligi) / (367.2 * guc);
+    sonuc = (denklem / (hidrolikVerim / 100)) * 100;
+    sonuc = double.parse(sonuc.toStringAsFixed(2));
     Alertler.snakeBilgi(
         context,
         "Motor Verimi: %$sonuc kopyalamak ister misin?",
@@ -294,7 +302,7 @@ class _engineeffState extends State<engineeff> {
               const SizedBox(height: 20),
               if (showResult)
                 Text(
-                  'Toplam: $sonuc',
+                  'Toplam: %$sonuc',
                   style: const TextStyle(
                       fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,

@@ -17,50 +17,58 @@ class _debiscreenState extends State<debiscreen> {
   bool seceneklerDurum = false;
 
   void hesaplaDebi() async {
-  double guc = double.tryParse(gucController.text) ?? 0;
-  double basmaYuksekligi = double.tryParse(basmaYuksekligiController.text) ?? 0;
-  double hidrolikVerim = double.tryParse(hidrolikVerimController.text) ?? 0;
-  double motorVerim = double.tryParse(motorVerimController.text) ?? 0;
+    double guc = double.tryParse(gucController.text) ?? 0;
+    double basmaYuksekligi =
+        double.tryParse(basmaYuksekligiController.text) ?? 0;
+    double hidrolikVerim = double.tryParse(hidrolikVerimController.text) ?? 0;
+    double motorVerim = double.tryParse(motorVerimController.text) ?? 0;
 
-  if (gucController.text.isEmpty || basmaYuksekligiController.text.isEmpty || hidrolikVerimController.text.isEmpty || motorVerimController.text.isEmpty) {
-    Alertler.dialogBilgi(context,"Lütfen boş yer bırakmayınız.", colorTheme);
-    return;
-  } else {
-    if (GucSecilenItem == "kW") {
-      sonuc = (guc * 367) / (basmaYuksekligi * hidrolikVerim * motorVerim);
-    } else if (GucSecilenItem == "W") {
-      sonuc = ((guc / 1000) * 367) / (basmaYuksekligi * hidrolikVerim * motorVerim);
-    } else if (GucSecilenItem == "hp") {
-      sonuc = ((guc * 0.7457) * 367) / (basmaYuksekligi * hidrolikVerim * motorVerim);
+    if (gucController.text.isEmpty ||
+        basmaYuksekligiController.text.isEmpty ||
+        hidrolikVerimController.text.isEmpty ||
+        motorVerimController.text.isEmpty) {
+      Alertler.dialogBilgi(context, "Lütfen boş yer bırakmayınız.", colorTheme);
     } else {
-      Alertler.dialogBilgi(context,"Geçersiz güç birimi", colorTheme);
-      return;
+      guc = (GucSecilenItem == "W")
+          ? guc / 1000
+          : (GucSecilenItem == "hp")
+              ? guc / 1.341
+              : guc;
+      sonuc = ((hidrolikVerim / 100) * (motorVerim / 100) * 367.2 * guc) /
+          basmaYuksekligi;
+      sonuc = (hesaplanma == "I/s") ? sonuc * 3600.0 / 1000.0 : sonuc;
+      sonuc = double.parse(sonuc.toStringAsFixed(2));
+      DBCommands dbCommands = DBCommands();
+      await dbCommands.initializeDatabase();
+      await dbCommands.insertData("Debi Hesaplaması",
+          "Güç: $guc | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc $hesaplanma");
+      await dbCommands.closeDatabase();
+      Alertler.snakeBilgi(
+          context,
+          "debi: $sonuc $hesaplanma kopyalamak ister misin?",
+          colorTheme,
+          sonuc.toString());
+      setState(() {
+        seceneklerDurum = true;
+        textDurum = true;
+      });
     }
-    DBCommands dbCommands = DBCommands();
-    await dbCommands.initializeDatabase();
-    await dbCommands.insertData("Debi Hesaplaması", "Güç: $guc | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc $hesaplanma");
-    await dbCommands.closeDatabase();
-    Alertler.snakeBilgi(context,"debi: $sonuc $hesaplanma kopyalamak ister misin?",colorTheme,sonuc.toString());
-    setState(() {
-      seceneklerDurum = true;
-      textDurum = true;
-    });
   }
-}
 
-void kontrol() async {
+  void kontrol() async {
     String sharedKontrol = await Shareds.sharedCek("debiscreen");
-    if(sharedKontrol != "Değer Bulunamadı") {
+    if (sharedKontrol != "Değer Bulunamadı") {
       String sharedKontrol2 = await Shareds.sharedCek("debiG");
-      if(sharedKontrol2 == "true") {
+      if (sharedKontrol2 == "true") {
         setState(() {
           seceneklerDurum = true;
         });
         hesaplanma = sharedKontrol;
       } else {
         List<String> liste = ["m³/h", "I/s"];
-        List<String> sonuclar = await Alertler.secenekBilgi(context, "Çıktı Değeri", liste, colorTheme,"m³/h",false);
-        if(sonuclar.isNotEmpty) {
+        List<String> sonuclar = await Alertler.secenekBilgi(
+            context, "Çıktı Değeri", liste, colorTheme, "m³/h", false);
+        if (sonuclar.isNotEmpty) {
           hesaplanma = sonuclar[0];
           Shareds.sharedEkleGuncelle("debiscreen", sonuclar[0]);
           Shareds.sharedEkleGuncelle("debiG", sonuclar[1]);
@@ -68,15 +76,15 @@ void kontrol() async {
       }
     } else {
       List<String> liste = ["m³/h", "I/s"];
-      List<String> sonuclar = await Alertler.secenekBilgi(context, "Çıktı Değeri", liste, colorTheme,"m³/h",false);
-      if(sonuclar.isNotEmpty) {
+      List<String> sonuclar = await Alertler.secenekBilgi(
+          context, "Çıktı Değeri", liste, colorTheme, "m³/h", false);
+      if (sonuclar.isNotEmpty) {
         hesaplanma = sonuclar[0];
         Shareds.sharedEkleGuncelle("debiscreen", sonuclar[0]);
         Shareds.sharedEkleGuncelle("debiG", sonuclar[1]);
       }
     }
   }
-
 
   TextEditingController gucController = TextEditingController();
   TextEditingController basmaYuksekligiController = TextEditingController();
@@ -104,7 +112,8 @@ void kontrol() async {
       appBar: AppBar(
         title: const Text('Debi'),
         backgroundColor: colorTheme,
-        actions: seceneklerDurum ? [
+        actions: seceneklerDurum
+            ? [
                 PopupMenuButton(
                   itemBuilder: (context) => [
                     PopupMenuItem(
@@ -113,11 +122,23 @@ void kontrol() async {
                         onTap: () async {
                           Navigator.pop(context);
                           List<String> liste = ["m³/h", "I/s"];
-                          List<String> sonuclar = await Alertler.secenekBilgi(context, "Çıktı Değeri", liste, colorTheme,hesaplanma,seceneklerDurum);
-                          if(sonuclar.isNotEmpty) {
+                          List<String> sonuclar = await Alertler.secenekBilgi(
+                              context,
+                              "Çıktı Değeri",
+                              liste,
+                              colorTheme,
+                              hesaplanma,
+                              seceneklerDurum);
+                          if (sonuclar.isNotEmpty) {
                             hesaplanma = sonuclar[0];
-                            Shareds.sharedEkleGuncelle("debiscreen", sonuclar[0]);
+                            Shareds.sharedEkleGuncelle(
+                                "debiscreen", sonuclar[0]);
                             Shareds.sharedEkleGuncelle("debiG", sonuclar[1]);
+                            if (gucController.text.isNotEmpty &&
+                                basmaYuksekligiController.text.isNotEmpty &&
+                                hidrolikVerimController.text.isNotEmpty &&
+                                motorVerimController.text.isNotEmpty)
+                              hesaplaDebi();
                           }
                         },
                       ),
@@ -154,7 +175,8 @@ void kontrol() async {
                           const SizedBox(width: 10),
                           DropdownButton<String>(
                             value: GucSecilenItem,
-                            items: <String>['kW', 'W','hp'].map((String value) {
+                            items:
+                                <String>['kW', 'W', 'hp'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
@@ -163,6 +185,11 @@ void kontrol() async {
                             onChanged: (String? newValue) {
                               setState(() {
                                 GucSecilenItem = newValue!;
+                                if (gucController.text.isNotEmpty &&
+                                    basmaYuksekligiController.text.isNotEmpty &&
+                                    hidrolikVerimController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaDebi();
                               });
                             },
                           ),
@@ -175,13 +202,14 @@ void kontrol() async {
                           controller: gucController,
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.next,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 255, 132, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 255, 132, 0)),
                               )),
                         ),
                       ),
@@ -221,13 +249,14 @@ void kontrol() async {
                         child: TextField(
                           controller: basmaYuksekligiController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 255, 132, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 255, 132, 0)),
                               )),
                         ),
                       ),
@@ -272,13 +301,14 @@ void kontrol() async {
                         child: TextField(
                           controller: hidrolikVerimController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 255, 151, 23)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 255, 151, 23)),
                               )),
                         ),
                       ),
@@ -318,13 +348,14 @@ void kontrol() async {
                         child: TextField(
                           controller: motorVerimController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 255, 132, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 255, 132, 0)),
                               )),
                         ),
                       ),
@@ -346,9 +377,10 @@ void kontrol() async {
               const SizedBox(height: 20),
               if (textDurum)
                 Text(
-                  'Toplam: $sonuc',
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center, 
+                  'Toplam: $sonuc $hesaplanma',
+                  style: const TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                   overflow: TextOverflow.visible,
                 ),
             ],

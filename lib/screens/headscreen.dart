@@ -20,23 +20,32 @@ class _headscreenState extends State<headscreen> {
     double hidrolikVerim = double.tryParse(hidrolikVerimController.text) ?? 0;
     double motorVerim = double.tryParse(motorVerimController.text) ?? 0;
 
-    if (gucController.text.isEmpty || debiController.text.isEmpty || hidrolikVerimController.text.isEmpty || motorVerimController.text.isEmpty) {
-    Alertler.dialogBilgi(context,"Lütfen boş yer bırakmayınız.", colorTheme);
-    return;
+    if (gucController.text.isEmpty ||
+        debiController.text.isEmpty ||
+        hidrolikVerimController.text.isEmpty ||
+        motorVerimController.text.isEmpty) {
+      Alertler.dialogBilgi(context, "Lütfen boş yer bırakmayınız.", colorTheme);
+      return;
     }
 
+    debi = (debiDegeri == "I/s") ? debi * 3600.0 / 1000.0 : debi;
+    guc = (gucDegeri == "W")
+        ? guc / 1000
+        : (gucDegeri == "hp")
+            ? guc / 1.341
+            : guc;
+    sonuc = ((hidrolikVerim / 100) * (motorVerim / 100) * 367.2 * guc) / debi;
+    sonuc = double.parse(sonuc.toStringAsFixed(2));
+    Alertler.snakeBilgi(
+        context,
+        "Basma Yüksekliği: $sonuc mSS kopyalamak ister misin?",
+        colorTheme,
+        sonuc.toString());
 
-    sonuc = debi + guc + hidrolikVerim + motorVerim;  // varsayılan olarak tüm değerler toplandı.
-    Alertler.snakeBilgi(context,"Basma Yüksekliği: $sonuc mSS kopyalamak ister misin?",colorTheme,sonuc.toString());
-
-    /*
-    Basma Yüksekliği hesaplaması için pompa verimlilik eğrisi, 
-    akış hızı, boru çapı, boru uzunluğu, basınç kayıpları ve sistem geometrisi gibi bilgilere ihtiyaç var. 
-    Bu verilere sahip olmadan doğrudan Basma Yüksekliği hesaplama işlemi yapılamaz.
-     */
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
-    await dbCommands.insertData("Basma Y. Hesaplaması", "Güç: $guc | Debi: $debi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc mSS");
+    await dbCommands.insertData("Basma Y. Hesaplaması",
+        "Güç: $guc | Debi: $debi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc mSS");
     await dbCommands.closeDatabase();
 
     setState(() {
@@ -100,6 +109,11 @@ class _headscreenState extends State<headscreen> {
                             onChanged: (String? newValue) {
                               setState(() {
                                 debiDegeri = newValue!;
+                                if (gucController.text.isNotEmpty &&
+                                    debiController.text.isNotEmpty &&
+                                    hidrolikVerimController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaIslem();
                               });
                             },
                           ),
@@ -111,13 +125,14 @@ class _headscreenState extends State<headscreen> {
                         child: TextField(
                           controller: debiController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 84, 220, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 84, 220, 0)),
                               )),
                         ),
                       ),
@@ -141,7 +156,8 @@ class _headscreenState extends State<headscreen> {
                           const SizedBox(width: 10),
                           DropdownButton<String>(
                             value: gucDegeri,
-                            items: <String>['kW', 'W','hp'].map((String value) {
+                            items:
+                                <String>['kW', 'W', 'hp'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
@@ -149,7 +165,12 @@ class _headscreenState extends State<headscreen> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               setState(() {
-                                  gucDegeri = newValue!;
+                                gucDegeri = newValue!;
+                                if (gucController.text.isNotEmpty &&
+                                    debiController.text.isNotEmpty &&
+                                    hidrolikVerimController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaIslem();
                               });
                             },
                           ),
@@ -161,13 +182,14 @@ class _headscreenState extends State<headscreen> {
                         child: TextField(
                           controller: gucController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 84, 220, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 84, 220, 0)),
                               )),
                         ),
                       ),
@@ -212,13 +234,14 @@ class _headscreenState extends State<headscreen> {
                         child: TextField(
                           controller: hidrolikVerimController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 84, 220, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 84, 220, 0)),
                               )),
                         ),
                       ),
@@ -258,13 +281,14 @@ class _headscreenState extends State<headscreen> {
                         child: TextField(
                           controller: motorVerimController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 84, 220, 0)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 84, 220, 0)),
                               )),
                         ),
                       ),
@@ -286,9 +310,10 @@ class _headscreenState extends State<headscreen> {
               const SizedBox(height: 20),
               if (showResult)
                 Text(
-                  'Toplam: $sonuc',
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center, 
+                  'Toplam: $sonuc mSS',
+                  style: const TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                   overflow: TextOverflow.visible,
                 ),
             ],

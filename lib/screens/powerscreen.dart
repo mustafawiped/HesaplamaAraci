@@ -31,22 +31,26 @@ class _powerscreenState extends State<powerscreen> {
       Alertler.dialogBilgi(context, "Lütfen boş yer bırakmayınız.", colorTheme);
       return;
     } else {
-      if (debiDegeri == "m³/h") {
-        //metreküp / saat ise
-        sonuc = (debi * basmaYuksekligi * hidrolikVerim * motorVerim) / 367;
-      } else if (debiDegeri == "I/s") {
-        // metre / saniye ise
-        double debiM3h = debi * 3.6;
-        sonuc = (debiM3h * basmaYuksekligi * hidrolikVerim * motorVerim) / 367;
-      } else {
+      if (debiDegeri == "I/s") {
+        debi = debi * 3600.0 / 1000.0;
+      } else if (debiDegeri != "m³/h") {
         Alertler.dialogBilgi(context, "Geçersiz debi birimi", colorTheme);
         return;
       }
+      sonuc = (debi * basmaYuksekligi) /
+          ((hidrolikVerim / 100) * (motorVerim / 100) * 367.2); // 6 olabilir.
+      sonuc = (hesaplanma == "W")
+          ? sonuc * 1000
+          : (hesaplanma == "hp")
+              ? sonuc * 1.341
+              : sonuc;
+      sonuc = double.parse(sonuc.toStringAsFixed(2));
       DBCommands dbCommands = DBCommands();
       await dbCommands.initializeDatabase();
       await dbCommands.insertData("Güç Hesaplaması",
           "Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc $hesaplanma");
       await dbCommands.closeDatabase();
+      // ignore: use_build_context_synchronously
       Alertler.snakeBilgi(
           context,
           "Güç: $sonuc $hesaplanma kopyalamak ister misin?",
@@ -70,6 +74,7 @@ class _powerscreenState extends State<powerscreen> {
         hesaplanma = sharedKontrol;
       } else {
         List<String> liste = ["kW", "W", "hp"];
+        // ignore: use_build_context_synchronously
         List<String> sonuclar = await Alertler.secenekBilgi(
             context, "Çıktı Değeri", liste, colorTheme, "kW", false);
         if (sonuclar.isNotEmpty) {
@@ -80,6 +85,7 @@ class _powerscreenState extends State<powerscreen> {
       }
     } else {
       List<String> liste = ["kW", "W", "hp"];
+      // ignore: use_build_context_synchronously
       List<String> sonuclar = await Alertler.secenekBilgi(
           context, "Çıktı Değeri", liste, colorTheme, "kW", false);
       if (sonuclar.isNotEmpty) {
@@ -138,6 +144,13 @@ class _powerscreenState extends State<powerscreen> {
                             Shareds.sharedEkleGuncelle(
                                 "powerscreen", sonuclar[0]);
                             Shareds.sharedEkleGuncelle("powerG", sonuclar[1]);
+                            if (debiController.text.isNotEmpty &&
+                                basmaYuksekligiController.text.isNotEmpty &&
+                                hidrolikVerimController.text.isNotEmpty &&
+                                motorVerimController.text.isNotEmpty)
+                              hesaplaIslem();
+                            else
+                              textDurum = false;
                           }
                         },
                       ),
@@ -183,6 +196,13 @@ class _powerscreenState extends State<powerscreen> {
                             onChanged: (String? newValue) {
                               setState(() {
                                 debiDegeri = newValue!;
+                                if (debiController.text.isNotEmpty &&
+                                    basmaYuksekligiController.text.isNotEmpty &&
+                                    hidrolikVerimController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaIslem();
+                                else
+                                  textDurum = false;
                               });
                             },
                           ),
@@ -369,7 +389,7 @@ class _powerscreenState extends State<powerscreen> {
               const SizedBox(height: 20),
               if (textDurum)
                 Text(
-                  'Toplam: $sonuc',
+                  'Toplam: $sonuc $hesaplanma',
                   style: const TextStyle(
                     fontSize: 29,
                     fontWeight: FontWeight.bold,

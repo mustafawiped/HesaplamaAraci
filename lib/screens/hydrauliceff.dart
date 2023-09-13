@@ -9,7 +9,7 @@ class hydroliceoff extends StatefulWidget {
 
 class _hydroliceoffState extends State<hydroliceoff> {
   double sonuc = 0;
-  bool textDurum= false;
+  bool textDurum = false;
   String debiDegeri = "m³/h";
   String gucDegeri = "kW";
   Color colorTheme = Color.fromARGB(255, 106, 0, 220);
@@ -17,24 +17,37 @@ class _hydroliceoffState extends State<hydroliceoff> {
   void hesaplaIslem() async {
     double debi = double.tryParse(debiController.text) ?? 0;
     double guc = double.tryParse(gucController.text) ?? 0;
-    double basmaYuksekligi = double.tryParse(basmaYuksekligiController.text) ?? 0;
+    double basmaYuksekligi =
+        double.tryParse(basmaYuksekligiController.text) ?? 0;
     double motorVerim = double.tryParse(motorVerimController.text) ?? 0;
 
-    if (gucController.text.isEmpty || debiController.text.isEmpty || basmaYuksekligiController.text.isEmpty || motorVerimController.text.isEmpty) {
-    Alertler.dialogBilgi(context,"Lütfen boş yer bırakmayınız.", colorTheme);
-    return;
+    if (gucController.text.isEmpty ||
+        debiController.text.isEmpty ||
+        basmaYuksekligiController.text.isEmpty ||
+        motorVerimController.text.isEmpty) {
+      Alertler.dialogBilgi(context, "Lütfen boş yer bırakmayınız.", colorTheme);
+      return;
     }
 
-    sonuc = debi + guc + basmaYuksekligi + motorVerim;
-    Alertler.snakeBilgi(context,"Hidrolik Verim: %$sonuc kopyalamak ister misin?",colorTheme,sonuc.toString());
+    debi = (debiDegeri == "I/s") ? debi * 3600.0 / 1000.0 : debi;
+    guc = (gucDegeri == "W")
+        ? guc / 1000
+        : (gucDegeri == "hp")
+            ? guc / 1.341
+            : guc;
+    double denklem = (debi * basmaYuksekligi) / (367.2 * guc);
+    sonuc = (denklem / (motorVerim / 100)) * 100;
+    sonuc = double.parse(sonuc.toStringAsFixed(2));
+    Alertler.snakeBilgi(
+        context,
+        "Hidrolik Verim: %$sonuc kopyalamak ister misin?",
+        colorTheme,
+        sonuc.toString());
 
-    /*
-    Hidrolik verim, pompa basma verimi, pompa etkinlik faktörleri, basınç kayıpları ve enerji tüketimi gibi 
-    faktörlerin bir kombinasyonuyla belirlenir.
-     */
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
-    await dbCommands.insertData("Hidrolik V. Hesaplaması", "Güç: $guc | Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Motor Verimi: $motorVerim | Sonuç: %$sonuc");
+    await dbCommands.insertData("Hidrolik V. Hesaplaması",
+        "Güç: $guc | Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Motor Verimi: $motorVerim | Sonuç: %$sonuc");
     await dbCommands.closeDatabase();
 
     setState(() {
@@ -98,6 +111,11 @@ class _hydroliceoffState extends State<hydroliceoff> {
                             onChanged: (String? newValue) {
                               setState(() {
                                 debiDegeri = newValue!;
+                                if (gucController.text.isNotEmpty &&
+                                    basmaYuksekligiController.text.isNotEmpty &&
+                                    debiController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaIslem();
                               });
                             },
                           ),
@@ -109,13 +127,14 @@ class _hydroliceoffState extends State<hydroliceoff> {
                         child: TextField(
                           controller: debiController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 106, 0, 220)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 106, 0, 220)),
                               )),
                         ),
                       ),
@@ -139,7 +158,8 @@ class _hydroliceoffState extends State<hydroliceoff> {
                           const SizedBox(width: 10),
                           DropdownButton<String>(
                             value: gucDegeri,
-                            items: <String>['kW', 'W','hp'].map((String value) {
+                            items:
+                                <String>['kW', 'W', 'hp'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
@@ -147,7 +167,12 @@ class _hydroliceoffState extends State<hydroliceoff> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               setState(() {
-                                  gucDegeri = newValue!;
+                                gucDegeri = newValue!;
+                                if (gucController.text.isNotEmpty &&
+                                    basmaYuksekligiController.text.isNotEmpty &&
+                                    debiController.text.isNotEmpty &&
+                                    motorVerimController.text.isNotEmpty)
+                                  hesaplaIslem();
                               });
                             },
                           ),
@@ -159,13 +184,14 @@ class _hydroliceoffState extends State<hydroliceoff> {
                         child: TextField(
                           controller: gucController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 106, 0, 220)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 106, 0, 220)),
                               )),
                         ),
                       ),
@@ -210,13 +236,14 @@ class _hydroliceoffState extends State<hydroliceoff> {
                         child: TextField(
                           controller: basmaYuksekligiController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 106, 0, 220)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 106, 0, 220)),
                               )),
                         ),
                       ),
@@ -256,13 +283,14 @@ class _hydroliceoffState extends State<hydroliceoff> {
                         child: TextField(
                           controller: motorVerimController,
                           keyboardType: TextInputType.number,
-                          onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               hintText: 'Sayı girin',
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color.fromARGB(255, 106, 0, 220)),
+                                borderSide: BorderSide(
+                                    color: Color.fromARGB(255, 106, 0, 220)),
                               )),
                         ),
                       ),
@@ -284,9 +312,10 @@ class _hydroliceoffState extends State<hydroliceoff> {
               const SizedBox(height: 20),
               if (textDurum)
                 Text(
-                  'Toplam: $sonuc',
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center, 
+                  'Toplam: %$sonuc',
+                  style: const TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                   overflow: TextOverflow.visible,
                 ),
             ],

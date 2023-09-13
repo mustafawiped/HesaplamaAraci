@@ -279,7 +279,7 @@ class HomePage extends StatelessWidget {
                         child: Column(
                           children: [
                             Image.asset(
-                              'assets/images/surtunmekaybi.jpeg',
+                              'assets/images/surtunmekaybi.png',
                               width: 100,
                               height: 100,
                             ),

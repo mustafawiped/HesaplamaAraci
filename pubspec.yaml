@@ -9,7 +9,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/guc.png
-    - assets/images/surtunmekaybi.jpeg
+    - assets/images/surtunmekaybi.png
     - assets/images/debi.png
     - assets/images/basmayuksekligi.png
     - assets/images/hidrolikverim.png
