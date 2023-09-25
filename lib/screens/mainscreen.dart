@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hesaplamaaraci/screens/feedbackscreen.dart';
+import 'package:hesaplamaaraci/screens/watherspeedscreen.dart';
 import 'package:hesaplamaaraci/screens/transactionscreen.dart';
 import 'frictionlossscreen.dart';
 import 'hydrauliceff.dart';
@@ -25,7 +25,7 @@ class mainscreen extends StatelessWidget {
         '/engine': (context) => engineeff(),
         '/frictionloss': (context) => FrictionLossScreen(),
         '/transactionHistory': (context) => TransactionScreen(),
-        '/feedback': (context) => feedbackscreen(),
+        '/watherspeed': (context) => watherspeedscreen(),
       },
     );
   }
@@ -46,14 +46,6 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "İşlem Seçebilirsiniz",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -303,6 +295,44 @@ class HomePage extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
+                        Navigator.pushNamed(context, '/watherspeed');
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color.fromARGB(255, 187, 187, 187),
+                              offset: Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/suhizi.png',
+                              width: 100,
+                              height: 100,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Su Hızı",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
                         Navigator.pushNamed(context, '/transactionHistory');
                       },
                       child: Container(
@@ -319,20 +349,18 @@ class HomePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Column(
                           children: [
-                            Icon(
-                              Icons.history,
-                              size: 23,
-                              color: Colors.black,
+                            Image.asset(
+                              'assets/images/gecmis.png',
+                              width: 100,
+                              height: 100,
                             ),
-                            SizedBox(width: 8),
-                            Text(
+                            const SizedBox(height: 8),
+                            const Text(
                               "İşlem Geçmişi",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
                               ),
                             ),
                           ],

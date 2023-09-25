@@ -14,9 +14,25 @@ flutter:
     - assets/images/basmayuksekligi.png
     - assets/images/hidrolikverim.png
     - assets/images/motor.png
+    - assets/images/suhizi.png
+    - assets/images/gecmis.png
     - assets/images/frictionloss/borucapi.png
     - assets/images/frictionloss/boruuzunlugu.png
     - assets/images/frictionloss/sicaklikolcer.png
+    - assets/images/frictionloss/aluminyum.png
+    - assets/images/frictionloss/asbest.png
+    - assets/images/frictionloss/bakir.png
+    - assets/images/frictionloss/bitumlucelik.png
+    - assets/images/frictionloss/bitumludemir.png
+    - assets/images/frictionloss/galvanizlicelik.png
+    - assets/images/frictionloss/oratpuruzbeton.png
+    - assets/images/frictionloss/paslanmazcelik.png
+    - assets/images/frictionloss/pikdemir.png
+    - assets/images/frictionloss/pirinc.png
+    - assets/images/frictionloss/polietilen.png
+    - assets/images/frictionloss/puruzlubeton.jpg
+    - assets/images/frictionloss/puruzsuzbeton.png
+    - assets/images/frictionloss/pvc.png
 
 dependencies:
   flutter:

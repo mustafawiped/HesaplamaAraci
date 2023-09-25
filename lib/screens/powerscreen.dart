@@ -65,7 +65,7 @@ class _powerscreenState extends State<powerscreen> {
 
   void kontrol() async {
     String sharedKontrol = await Shareds.sharedCek("powerscreen");
-    if (sharedKontrol != "Değer Bulunamadı") {
+    if (sharedKontrol != "Değer Bulunamadı") { 
       String sharedKontrol2 = await Shareds.sharedCek("powerG");
       if (sharedKontrol2 == "true") {
         setState(() {

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hesaplamaaraci/transactions/dbcommands.dart';
@@ -12,10 +14,10 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
   double sonuc = 0;
   bool showResult = false;
   String debiDegeri = "m³/h";
-  String gucDegeri = "mm";
+  String boruCapiDegeri = "mm";
   String secilenItem = "Alüminyum";
   String boruUdegeri = "m";
-  String secilenResim = 'https://i.hizliresim.com/e5g2on0.png';
+  String secilenResim = 'assets/images/frictionloss/aluminyum.png';
   Color colorTheme = Color.fromARGB(255, 0, 176, 220);
 
   @override
@@ -41,7 +43,25 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
       return;
     }
 
-    sonuc = debi + boruCapi + boruUzunlugu + sicaklik;
+    // debiyi m3/s e dönüştürdük, boru çapını milimetreye, boru uzunluğunu metreye ve sürtünme kaybı katsaısını aldık.
+    if (debiDegeri == "I/s") debi = debi * 3600.0 / 1000.0;
+    if (boruCapiDegeri == "in") boruCapi = boruCapi * 25.4;
+    if (boruUdegeri == "ft")
+      boruUzunlugu = boruUzunlugu * 0.3048;
+    else if (boruUdegeri == "km")
+      boruUzunlugu = boruUzunlugu * 1000;
+    else if (boruUdegeri == "miles") boruUzunlugu = boruUzunlugu * 1609.34;
+    double surtunmeKaybiKatSayisi = surtunmeKaybi[secilenItem]!.toDouble();
+    debi = debi * 1000 / 60;
+    //
+
+    // Hesaplamalar..
+    double Pm = 6.05 *
+        ((debi * 1.85) /
+            (pow(surtunmeKaybiKatSayisi, 1.85) * pow(boruCapi, 4.87))) *
+        1e5;
+    sonuc = Pm * boruUzunlugu * 10.43;
+    sonuc = double.parse(sonuc.toStringAsFixed(4));
     Alertler.snakeBilgi(
         context,
         "Sürtünme Kaybı: $sonuc kopyalamak ister misin?",
@@ -73,20 +93,20 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
   }
 
   Map<String, String> spinnerResimleri = {
-    'Alüminyum': 'https://i.hizliresim.com/e5g2on0.png',
-    'Asbest': 'https://i.hizliresim.com/cfa9l40.png',
-    'Bakır': 'https://i.hizliresim.com/e5g2on0.png',
-    'Bitümlü çelik': 'https://i.hizliresim.com/cfa9l40.png',
-    'Bitümlü demir': 'https://i.hizliresim.com/e5g2on0.png',
-    'Galvanizli çelik': 'https://i.hizliresim.com/cfa9l40.png',
-    'Orta pürüzlü beton': 'https://i.hizliresim.com/e5g2on0.png',
-    'Paslanmaz çelik': 'https://i.hizliresim.com/cfa9l40.png',
-    'Pik demir': 'https://i.hizliresim.com/e5g2on0.png',
-    'Pirinç': 'https://i.hizliresim.com/cfa9l40.png',
-    'Polietilen': 'https://i.hizliresim.com/cfa9l40.png',
-    'Pürüzsüz beton': 'https://i.hizliresim.com/cfa9l40.png',
-    'Pürüzlü beton': 'https://i.hizliresim.com/e5g2on0.png',
-    'PVC': 'https://i.hizliresim.com/cfa9l40.png',
+    'Alüminyum': 'assets/images/frictionloss/aluminyum.png',
+    'Asbest': 'assets/images/frictionloss/asbest.png',
+    'Bakır': 'assets/images/frictionloss/bakir.png',
+    'Bitümlü çelik': 'assets/images/frictionloss/bitumlucelik.png',
+    'Bitümlü demir': 'assets/images/frictionloss/bitumludemir.png',
+    'Galvanizli çelik': 'assets/images/frictionloss/galvanizlicelik.png',
+    'Orta pürüzlü beton': 'assets/images/frictionloss/oratpuruzbeton.png',
+    'Paslanmaz çelik': 'assets/images/frictionloss/paslanmazcelik.png',
+    'Pik demir': 'assets/images/frictionloss/pikdemir.png',
+    'Pirinç': 'assets/images/frictionloss/pirinc.png',
+    'Polietilen': 'assets/images/frictionloss/polietilen.png',
+    'Pürüzsüz beton': 'assets/images/frictionloss/puruzsuzbeton.png',
+    'Pürüzlü beton': 'assets/images/frictionloss/puruzlubeton.jpg',
+    'PVC': 'assets/images/frictionloss/pvc.png',
   };
 
   Map<String, int> surtunmeKaybi = {
@@ -128,7 +148,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
                   SizedBox(
                     width: 70,
                     height: 70,
-                    child: Image.network(secilenResim),
+                    child: Image.asset(secilenResim),
                   ),
                   SizedBox(width: 16),
                   Container(
@@ -141,7 +161,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
                         setState(() {
                           secilenItem = newValue!;
                           secilenResim = spinnerResimleri[newValue] ??
-                              'https://i.hizliresim.com/e5g2on0.png';
+                              'assets/images/frictionloss/aluminyum.png';
                         });
                       },
                       items: <String>[
@@ -241,7 +261,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
                           ),
                           const SizedBox(width: 10),
                           DropdownButton<String>(
-                            value: gucDegeri,
+                            value: boruCapiDegeri,
                             items: <String>['mm', 'in'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -250,7 +270,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               setState(() {
-                                gucDegeri = newValue!;
+                                boruCapiDegeri = newValue!;
                               });
                             },
                           ),
