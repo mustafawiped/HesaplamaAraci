@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:hesaplamaaraci/transactions/dbcommands.dart';
 import 'package:hesaplamaaraci/transactions/warnings.dart';
@@ -13,6 +15,7 @@ class waterspeedState extends State<watherspeedscreen>
   double sonuc = 0;
   bool textDurum = false;
   String debiDegeri = "m³/h";
+  String capDegeri = "mm";
   bool seceneklerDurum = false;
 
   TextEditingController debiController = TextEditingController();
@@ -41,7 +44,11 @@ class waterspeedState extends State<watherspeedscreen>
       } else if (debiDegeri == "m³/h") {
         debi = debi / 3600.0;
       }
-      sonuc = debi / borucapi;
+      if (capDegeri == "mm") {
+        borucapi = borucapi / 1000;
+      }
+      double borukesit = (3.1415926 * pow(borucapi, 2)) / 4;
+      sonuc = debi / borukesit;
       sonuc = double.parse(sonuc.toStringAsFixed(2));
       DBCommands dbCommands = DBCommands();
       await dbCommands.initializeDatabase();
@@ -146,14 +153,18 @@ class waterspeedState extends State<watherspeedscreen>
                           ),
                           const SizedBox(width: 10),
                           DropdownButton<String>(
-                            value: 'm',
-                            items: <String>['m'].map((String value) {
+                            value: capDegeri,
+                            items: <String>['mm', 'm'].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {},
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                capDegeri = newValue!;
+                              });
+                            },
                           ),
                         ],
                       ),
