@@ -46,25 +46,31 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
     // debiyi m3/s e dönüştürdük, boru çapını milimetreye, boru uzunluğunu metreye ve sürtünme kaybı katsaısını aldık.
     if (debiDegeri == "I/s") debi = debi * 3600.0 / 1000.0;
     if (boruCapiDegeri == "in") boruCapi = boruCapi * 25.4;
-    if (boruUdegeri == "ft")
+    if (boruUdegeri == "ft") {
       boruUzunlugu = boruUzunlugu * 0.3048;
-    else if (boruUdegeri == "km")
+    } else if (boruUdegeri == "km")
       boruUzunlugu = boruUzunlugu * 1000;
+    // ignore: curly_braces_in_flow_control_structures
     else if (boruUdegeri == "miles") boruUzunlugu = boruUzunlugu * 1609.34;
     double surtunmeKaybiKatSayisi = surtunmeKaybi[secilenItem]!.toDouble();
-    debi = debi * 1000 / 60;
+    debi = (debi / 3.6) * 60;
     //
 
     // Hesaplamalar..
     double Pm = 6.05 *
-        ((debi * 1.85) /
+        (pow(debi, 1.85) /
             (pow(surtunmeKaybiKatSayisi, 1.85) * pow(boruCapi, 4.87))) *
-        1e5;
+        pow(10, 5);
+    print("pm: $Pm");
+    print("debi: $debi");
+    print("surtunmekaybi: $surtunmeKaybiKatSayisi");
+    print("çap: $boruCapi");
+    print("uzunluk: $boruUzunlugu");
     sonuc = Pm * boruUzunlugu * 10.43;
     sonuc = double.parse(sonuc.toStringAsFixed(4));
     Alertler.snakeBilgi(
         context,
-        "Sürtünme Kaybı: $sonuc kopyalamak ister misin?",
+        "Sürtünme Kaybı: $sonuc m kopyalamak ister misin?",
         colorTheme,
         sonuc.toString());
     DBCommands dbCommands = DBCommands();
@@ -110,7 +116,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
   };
 
   Map<String, int> surtunmeKaybi = {
-    'Alüminyum': 10,
+    'Alüminyum': 120,
     'Asbest': 10,
     'Bakır': 10,
     'Bitümlü çelik': 10,
@@ -417,7 +423,7 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
               const SizedBox(height: 20),
               if (showResult)
                 Text(
-                  'Toplam: $sonuc',
+                  'Toplam: $sonuc m',
                   style: const TextStyle(
                       fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
