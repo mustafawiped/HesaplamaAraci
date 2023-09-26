@@ -47,7 +47,7 @@ class _hydroliceoffState extends State<hydroliceoff> {
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
     await dbCommands.insertData("Hidrolik V. Hesaplaması",
-        "Güç: $guc | Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Motor Verimi: $motorVerim | Sonuç: %$sonuc");
+        "● Güç: $guc \n● Debi: $debi \n● Basma Yüksekliği: $basmaYuksekligi \n● Motor Verimi: $motorVerim \n➤ Sonuç: %$sonuc");
     await dbCommands.closeDatabase();
 
     setState(() {

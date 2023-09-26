@@ -53,7 +53,7 @@ class waterspeedState extends State<watherspeedscreen>
       DBCommands dbCommands = DBCommands();
       await dbCommands.initializeDatabase();
       await dbCommands.insertData("Su Hızı Hesaplaması",
-          "Debi: $debi | Boru Çapı: $borucapi | Sonuç: $sonuc m/sn");
+          "● Debi: $debi \n● Boru Çapı: $borucapi \n➤ Sonuç: $sonuc m/sn");
       await dbCommands.closeDatabase();
       // ignore: use_build_context_synchronously
       Alertler.snakeBilgi(

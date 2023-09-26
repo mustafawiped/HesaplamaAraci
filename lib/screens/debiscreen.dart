@@ -41,7 +41,7 @@ class _debiscreenState extends State<debiscreen> {
       DBCommands dbCommands = DBCommands();
       await dbCommands.initializeDatabase();
       await dbCommands.insertData("Debi Hesaplaması",
-          "Güç: $guc | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc $hesaplanma");
+          "● Güç: $guc \n● Basma Yüksekliği: $basmaYuksekligi \n● Hidrolik Verim: $hidrolikVerim \n● Motor Verimi: $motorVerim \n➤ Sonuç: $sonuc $hesaplanma");
       await dbCommands.closeDatabase();
       Alertler.snakeBilgi(
           context,

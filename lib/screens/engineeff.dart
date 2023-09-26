@@ -47,7 +47,7 @@ class _engineeffState extends State<engineeff> {
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
     await dbCommands.insertData("Motor V. Hesaplaması",
-        "Güç: $guc | Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Sonuç: %$sonuc");
+        "●Güç: $guc \n● Debi: $debi \n● Basma Yüksekliği: $basmaYuksekligi \n● Hidrolik Verim: $hidrolikVerim \n➤ Sonuç: %$sonuc");
     await dbCommands.closeDatabase();
 
     setState(() {

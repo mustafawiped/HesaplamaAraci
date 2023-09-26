@@ -33,18 +33,15 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
     double debi = double.tryParse(debiController.text) ?? 0;
     double boruCapi = double.tryParse(boruCapiController.text) ?? 0;
     double boruUzunlugu = double.tryParse(boruUzunluguController.text) ?? 0;
-    double sicaklik = double.tryParse(sicaklikController.text) ?? 0;
 
     if (boruCapiController.text.isEmpty ||
         debiController.text.isEmpty ||
-        boruUzunluguController.text.isEmpty ||
-        sicaklikController.text.isEmpty) {
+        boruUzunluguController.text.isEmpty) {
       Alertler.dialogBilgi(context, "Lütfen boş yer bırakmayınız.", colorTheme);
       return;
     }
 
-    // debiyi m3/s e dönüştürdük, boru çapını milimetreye, boru uzunluğunu metreye ve sürtünme kaybı katsaısını aldık.
-    if (debiDegeri == "I/s") debi = debi * 3600.0 / 1000.0;
+    if (debiDegeri == "m³/h") debi = (debi / 3.6);
     if (boruCapiDegeri == "in") boruCapi = boruCapi * 25.4;
     if (boruUdegeri == "ft") {
       boruUzunlugu = boruUzunlugu * 0.3048;
@@ -53,20 +50,17 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
     // ignore: curly_braces_in_flow_control_structures
     else if (boruUdegeri == "miles") boruUzunlugu = boruUzunlugu * 1609.34;
     double surtunmeKaybiKatSayisi = surtunmeKaybi[secilenItem]!.toDouble();
-    debi = (debi / 3.6) * 60;
     //
 
     // Hesaplamalar..
-    double Pm = 6.05 *
-        (pow(debi, 1.85) /
-            (pow(surtunmeKaybiKatSayisi, 1.85) * pow(boruCapi, 4.87))) *
-        pow(10, 5);
-    print("pm: $Pm");
-    print("debi: $debi");
-    print("surtunmekaybi: $surtunmeKaybiKatSayisi");
-    print("çap: $boruCapi");
-    print("uzunluk: $boruUzunlugu");
-    sonuc = Pm * boruUzunlugu * 10.43;
+    double Pm = pow(100 / surtunmeKaybiKatSayisi, 1.852) *
+        pow(debi * 15.852, 1.852) /
+        pow(boruCapi * 0.03937, 4.8655) *
+        0.2083 *
+        304.8 *
+        3.28;
+    sonuc = Pm * boruUzunlugu / 100;
+    sonuc = sonuc / 100;
     sonuc = double.parse(sonuc.toStringAsFixed(4));
     Alertler.snakeBilgi(
         context,
@@ -75,8 +69,8 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
         sonuc.toString());
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
-    await dbCommands.insertData("Sürtünme K. Hesaplaması",
-        "Boru Çapı: $boruCapi | Debi: $debi | Boru Uzunluğu: $boruUzunlugu | Sıcaklık: $sicaklik | Sonuç: $sonuc");
+    await dbCommands.insertData("$secilenItem Kaybı Hesabı",
+        "● Boru Çapı: $boruCapi \n● Debi: $debi \n● Boru Uzunluğu: $boruUzunlugu \n➤ Sonuç: $sonuc m");
     await dbCommands.closeDatabase();
 
     setState(() {
@@ -116,20 +110,20 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
   };
 
   Map<String, int> surtunmeKaybi = {
-    'Alüminyum': 120,
-    'Asbest': 10,
-    'Bakır': 10,
-    'Bitümlü çelik': 10,
-    'Bitümlü demir': 10,
-    'Galvanizli çelik': 10,
-    'Orta pürüzlü beton': 10,
-    'Paslanmaz çelik': 10,
-    'Pik demir': 10,
-    'Pirinç': 10,
-    'Polietilen': 10,
-    'Pürüzsüz beton': 10,
-    'Pürüzlü beton': 10,
-    'PVC': 10,
+    'Alüminyum': 140,
+    'Asbest': 140,
+    'Bakır': 135,
+    'Bitümlü çelik': 100,
+    'Bitümlü demir': 140,
+    'Galvanizli çelik': 120,
+    'Orta pürüzlü beton': 110,
+    'Paslanmaz çelik': 140,
+    'Pik demir': 97,
+    'Pirinç': 135,
+    'Polietilen': 140,
+    'Pürüzsüz beton': 130,
+    'Pürüzlü beton': 105,
+    'PVC': 150,
   };
 
   @override
@@ -345,54 +339,6 @@ class FrictionLossScreenState extends State<FrictionLossScreen> {
                         width: 120,
                         child: TextField(
                           controller: boruUzunluguController,
-                          keyboardType: TextInputType.number,
-                          onEditingComplete: () =>
-                              FocusScope.of(context).nextFocus(),
-                          decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Sayı girin',
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Color.fromARGB(255, 0, 176, 220)),
-                              )),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 40),
-                  Column(
-                    children: [
-                      SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Image.asset(
-                            'assets/images/frictionloss/sicaklikolcer.png'),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Text(
-                            'Sıcaklık',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(width: 10),
-                          DropdownButton<String>(
-                            value: '°C',
-                            items: <String>['°C'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {},
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Container(
-                        width: 120,
-                        child: TextField(
-                          controller: sicaklikController,
                           keyboardType: TextInputType.number,
                           onEditingComplete: () =>
                               FocusScope.of(context).nextFocus(),

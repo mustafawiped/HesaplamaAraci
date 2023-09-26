@@ -45,7 +45,7 @@ class _headscreenState extends State<headscreen> {
     DBCommands dbCommands = DBCommands();
     await dbCommands.initializeDatabase();
     await dbCommands.insertData("Basma Y. Hesaplaması",
-        "Güç: $guc | Debi: $debi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc mSS");
+        "● Güç: $guc \n● Debi: $debi \n● Hidrolik Verim: $hidrolikVerim \n● Motor Verimi: $motorVerim \n➤ Sonuç: $sonuc mSS");
     await dbCommands.closeDatabase();
 
     setState(() {

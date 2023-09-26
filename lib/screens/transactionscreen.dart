@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hesaplamaaraci/transactions/dbcommands.dart';
 
 class TransactionScreen extends StatefulWidget {
@@ -42,6 +43,21 @@ class _TransactionScreenState extends State<TransactionScreen> {
     });
   }
 
+  void _copySelectedData(String sonuc) {
+    List<String> satirlar = sonuc.split('\n');
+    String sonucSatiri = satirlar.last; // Son satırı alın
+    String copy = sonucSatiri.split('Sonuç: ')[1].split(' m')[0];
+    copy = copy.replaceAll(' m/sn', '');
+    copy = copy.replaceAll('%', '');
+    copy = copy.replaceAll(' mSS', '');
+    copy = copy.replaceAll(' m³/h', '');
+    copy = copy.replaceAll(' I/s', '');
+    copy = copy.replaceAll(' kW', '');
+    copy = copy.replaceAll(' W', '');
+    copy = copy.replaceAll(' hp', '');
+    Clipboard.setData(ClipboardData(text: copy));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,11 +99,22 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           sonuc!,
                           style: TextStyle(fontSize: 16),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            _deleteSelectedData(id);
-                          },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                _deleteSelectedData(id);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.copy),
+                              onPressed: () {
+                                _copySelectedData(sonuc);
+                              },
+                            ),
+                          ],
                         ),
                       );
                     },

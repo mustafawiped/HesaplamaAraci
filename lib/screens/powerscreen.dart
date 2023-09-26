@@ -48,7 +48,7 @@ class _powerscreenState extends State<powerscreen> {
       DBCommands dbCommands = DBCommands();
       await dbCommands.initializeDatabase();
       await dbCommands.insertData("Güç Hesaplaması",
-          "Debi: $debi | Basma Yüksekliği: $basmaYuksekligi | Hidrolik Verim: $hidrolikVerim | Motor Verimi: $motorVerim | Sonuç: $sonuc $hesaplanma");
+          "● Debi: $debi \n● Basma Yüksekliği: $basmaYuksekligi \n● Hidrolik Verim: $hidrolikVerim \n● Motor Verimi: $motorVerim \n➤ Sonuç: $sonuc $hesaplanma");
       await dbCommands.closeDatabase();
       // ignore: use_build_context_synchronously
       Alertler.snakeBilgi(
@@ -65,7 +65,7 @@ class _powerscreenState extends State<powerscreen> {
 
   void kontrol() async {
     String sharedKontrol = await Shareds.sharedCek("powerscreen");
-    if (sharedKontrol != "Değer Bulunamadı") { 
+    if (sharedKontrol != "Değer Bulunamadı") {
       String sharedKontrol2 = await Shareds.sharedCek("powerG");
       if (sharedKontrol2 == "true") {
         setState(() {
